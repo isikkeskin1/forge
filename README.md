@@ -4,29 +4,13 @@
 
 This repository is the home of **Forge**, a focused systems/data-engineering project exploring how far a small, dependency-light C engine can push analytical workloads through columnar data, cache-aware execution, SIMD, parallelism, and memory-mapped I/O.
 
-## Why Forge?
-
-Modern analytical engines are extremely capable, but they are also large systems. Forge is deliberately narrower: implement important pieces from first principles, benchmark them rigorously, and publish the engineering trade-offs.
-
-Forge is **not** intended to replace DuckDB or Polars. It is a laboratory for understanding high-performance data processing.
-
-## Design goals
-
-- C11 core with explicit memory ownership
-- Columnar execution for analytical workloads
-- Zero-copy paths where practical
-- Cache-aware algorithms and predictable memory access
-- Parallel execution with a small worker runtime
-- SIMD acceleration for hot loops
-- Memory-mapped I/O for large local datasets
-- Python bindings after the native core is stable
-- Reproducible benchmarks against established tools
+Forge is deliberately narrow: implement important pieces from first principles, benchmark them rigorously, and publish the engineering trade-offs. It is a laboratory for understanding high-performance data processing, not a replacement for DuckDB or Polars.
 
 ## Current status
 
-Forge now has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, a typed table container, sorting/permutation primitives, and a hash-based inner join.
+Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. The pipeline keeps a row selection as its intermediate representation, allowing multiple filters to be chained before projection/materialization.
 
-The project is still intentionally pre-optimization: correctness contracts and reproducible measurements come before SIMD or multithreading.
+The project remains intentionally pre-optimization: correctness contracts and reproducible measurements come before SIMD or multithreading.
 
 ## Build
 
@@ -41,6 +25,12 @@ To include microbenchmarks:
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFORGE_BUILD_BENCHMARKS=ON
 cmake --build build
+```
+
+The pipeline benchmark accepts an optional row count:
+
+```bash
+./build/forge_bench_pipeline 5000000
 ```
 
 ## Roadmap
@@ -67,8 +57,8 @@ cmake --build build
 - [x] Group-by hash table
 - [x] Sort / argsort
 - [x] Hash inner join
+- [x] Query pipeline composition
 - [ ] Expression kernels
-- [ ] Query pipeline composition
 
 ### Phase 3 — Performance
 

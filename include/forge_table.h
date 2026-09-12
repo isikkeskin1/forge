@@ -2,6 +2,7 @@
 #define FORGE_TABLE_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "forge_column.h"
 
@@ -14,7 +15,7 @@ typedef struct {
 void forge_table_init(forge_table *table);
 void forge_table_free(forge_table *table);
 int forge_table_init_i64(forge_table *table, size_t column_count);
-int forge_table_append_i64(forge_table *table, size_t column, long long value);
+int forge_table_append_i64(forge_table *table, size_t column, int64_t value);
 int forge_table_validate(const forge_table *table);
 
 #endif

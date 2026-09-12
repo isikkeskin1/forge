@@ -13,6 +13,7 @@ add_library(forge STATIC
     src/forge_csv.c
     src/forge_column.c
     src/forge_i64_parse.c
+    src/forge_kernel.c
 )
 
 target_include_directories(forge
@@ -49,7 +50,7 @@ if(FORGE_BUILD_TESTS)
     target_link_libraries(forge_i64_parse_test PRIVATE forge)
     add_test(NAME forge_i64_parse_test COMMAND forge_i64_parse_test)
 
-    add_executable(forge_csv_i64_test tests/test_csv_i64.c)
-    target_link_libraries(forge_csv_i64_test PRIVATE forge)
-    add_test(NAME forge_csv_i64_test COMMAND forge_csv_i64_test)
+    add_executable(forge_kernel_test tests/test_kernel.c)
+    target_link_libraries(forge_kernel_test PRIVATE forge)
+    add_test(NAME forge_kernel_test COMMAND forge_kernel_test)
 endif()

@@ -41,6 +41,28 @@ static void test_partial_row_is_rejected(void) {
     forge_table_free(&table);
 }
 
+static void test_table_argsort(void) {
+    forge_table table;
+    forge_table_init(&table);
+    assert(forge_table_init_i64(&table, 2) == 0);
+
+    const int64_t keys[] = {30, 10, 20, 10};
+    const int64_t payload[] = {300, 100, 200, 101};
+    for (size_t row = 0; row < 4; ++row) {
+        assert(forge_table_append_i64(&table, 0, keys[row]) == 0);
+        assert(forge_table_append_i64(&table, 1, payload[row]) == 0);
+    }
+
+    size_t indices[4] = {0};
+    assert(forge_table_argsort_i64(&table, 0, indices) == 0);
+    assert(indices[0] == 1);
+    assert(indices[1] == 3);
+    assert(indices[2] == 2);
+    assert(indices[3] == 0);
+
+    forge_table_free(&table);
+}
+
 static void test_invalid_inputs(void) {
     forge_table table;
     forge_table_init(&table);
@@ -50,6 +72,7 @@ static void test_invalid_inputs(void) {
     assert(forge_table_append_i64(NULL, 0, 1) != 0);
     assert(forge_table_validate(NULL) != 0);
     assert(forge_table_validate(&table) == 0);
+    assert(forge_table_argsort_i64(NULL, 0, NULL) != 0);
 
     forge_table_free(&table);
 }
@@ -57,6 +80,7 @@ static void test_invalid_inputs(void) {
 int main(void) {
     test_append_rows();
     test_partial_row_is_rejected();
+    test_table_argsort();
     test_invalid_inputs();
     return 0;
 }

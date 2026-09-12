@@ -103,4 +103,7 @@ if(FORGE_BUILD_BENCHMARKS)
 
     add_executable(forge_bench_join bench/bench_join.c)
     target_link_libraries(forge_bench_join PRIVATE forge)
+
+    add_executable(forge_bench_pipeline bench/bench_pipeline.c)
+    target_link_libraries(forge_bench_pipeline PRIVATE forge)
 endif()

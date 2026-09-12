@@ -17,6 +17,7 @@ add_library(forge STATIC
     src/forge_kernel.c
     src/forge_scan.c
     src/forge_selection.c
+    src/forge_table.c
 )
 
 target_include_directories(forge
@@ -64,6 +65,10 @@ if(FORGE_BUILD_TESTS)
     add_executable(forge_selection_test tests/test_selection.c)
     target_link_libraries(forge_selection_test PRIVATE forge)
     add_test(NAME forge_selection_test COMMAND forge_selection_test)
+
+    add_executable(forge_table_test tests/test_table.c)
+    target_link_libraries(forge_table_test PRIVATE forge)
+    add_test(NAME forge_table_test COMMAND forge_table_test)
 endif()
 
 if(FORGE_BUILD_BENCHMARKS)

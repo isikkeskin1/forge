@@ -24,7 +24,7 @@ Forge is **not** intended to replace DuckDB or Polars. It is a laboratory for un
 
 ## Current status
 
-Forge now has the first vertical slice of an analytical runtime: typed integer columns, strict numeric parsing, CSV ingestion, reusable selection vectors, scalar predicate kernels, fused scans, a columnar table container, and an open-addressed group-by hash table.
+Forge now has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, a typed table container, sorting/permutation primitives, and a hash-based inner join.
 
 The project is still intentionally pre-optimization: correctness contracts and reproducible measurements come before SIMD or multithreading.
 
@@ -65,9 +65,10 @@ cmake --build build
 - [x] Projection/materialization primitives
 - [x] Fused scan + aggregation
 - [x] Group-by hash table
-- [ ] Sort
-- [ ] Join
+- [x] Sort / argsort
+- [x] Hash inner join
 - [ ] Expression kernels
+- [ ] Query pipeline composition
 
 ### Phase 3 — Performance
 

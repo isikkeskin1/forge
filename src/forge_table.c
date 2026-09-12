@@ -1,6 +1,5 @@
 #include "forge_table.h"
 
-#include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -47,9 +46,8 @@ int forge_table_init_i64(forge_table *table, size_t column_count) {
     return 0;
 }
 
-int forge_table_append_i64(forge_table *table, size_t column, long long value) {
-    if (table == NULL || table->columns == NULL || column >= table->column_count ||
-        value < INT64_MIN || value > INT64_MAX) {
+int forge_table_append_i64(forge_table *table, size_t column, int64_t value) {
+    if (table == NULL || table->columns == NULL || column >= table->column_count) {
         return -1;
     }
 
@@ -58,7 +56,7 @@ int forge_table_append_i64(forge_table *table, size_t column, long long value) {
         return -1;
     }
 
-    if (forge_i64_column_append(target, (int64_t)value) != 0) {
+    if (forge_i64_column_append(target, value) != 0) {
         return -1;
     }
     if (column + 1 == table->column_count) {

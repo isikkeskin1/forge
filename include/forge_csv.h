@@ -4,12 +4,21 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#include "forge_buffer.h"
+
+typedef enum {
+    FORGE_CSV_OK = 0,
+    FORGE_CSV_INVALID_ARGUMENT = 1,
+    FORGE_CSV_IO_ERROR = 2,
+    FORGE_CSV_UNTERMINATED_QUOTE = 3
+} forge_csv_status;
+
 typedef struct {
     size_t fields;
     size_t records;
 } forge_csv_stats;
 
 /* Scan a CSV stream without retaining the parsed records. */
-int forge_csv_scan(FILE *stream, forge_csv_stats *stats);
+forge_csv_status forge_csv_scan(FILE *stream, forge_csv_stats *stats);
 
 #endif

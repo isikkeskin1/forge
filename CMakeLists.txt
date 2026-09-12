@@ -6,6 +6,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 option(FORGE_BUILD_TESTS "Build Forge tests" ON)
+option(FORGE_BUILD_BENCHMARKS "Build Forge microbenchmarks" OFF)
 
 add_library(forge STATIC
     src/forge.c
@@ -53,4 +54,9 @@ if(FORGE_BUILD_TESTS)
     add_executable(forge_kernel_test tests/test_kernel.c)
     target_link_libraries(forge_kernel_test PRIVATE forge)
     add_test(NAME forge_kernel_test COMMAND forge_kernel_test)
+endif()
+
+if(FORGE_BUILD_BENCHMARKS)
+    add_executable(forge_bench_scan bench/bench_scan.c)
+    target_link_libraries(forge_bench_scan PRIVATE forge)
 endif()

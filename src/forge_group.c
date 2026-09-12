@@ -2,7 +2,6 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 static uint64_t forge_mix_u64(uint64_t value) {
     value ^= value >> 30;
@@ -63,8 +62,9 @@ int forge_i64_group_reserve(forge_i64_group *group, size_t requested) {
         return -1;
     }
 
-    size_t capacity = forge_next_power_of_two(requested);
-    if (capacity < requested || capacity < 8 || capacity > SIZE_MAX / sizeof(*group->entries)) {
+    const size_t capacity = forge_next_power_of_two(requested);
+    if (capacity < requested || capacity < 8 ||
+        capacity > SIZE_MAX / sizeof(*group->entries)) {
         return -1;
     }
 
@@ -160,4 +160,20 @@ int forge_i64_group_get(const forge_i64_group *group, int64_t key,
         }
         slot = (slot + 1) & mask;
     }
+}
+
+int forge_i64_group_scan(const int64_t *keys, const int64_t *values,
+                         size_t length, forge_i64_group *group) {
+    if ((keys == NULL || values == NULL) && length != 0) {
+        return -1;
+    }
+    if (group == NULL) {
+        return -1;
+    }
+    for (size_t i = 0; i < length; ++i) {
+        if (forge_i64_group_add(group, keys[i], values[i]) != 0) {
+            return -1;
+        }
+    }
+    return 0;
 }

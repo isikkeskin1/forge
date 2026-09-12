@@ -26,6 +26,25 @@ static void test_select_and_gather(void) {
     forge_selection_free(&selection);
 }
 
+static void test_predicates(void) {
+    const int64_t values[] = {1, 2, 3, 2, 5};
+    forge_selection selection;
+    forge_selection_init(&selection);
+
+    assert(forge_i64_select_lt(values, 5, 3, &selection) == 0);
+    assert(selection.length == 3);
+    assert(selection.indices[0] == 0);
+    assert(selection.indices[1] == 1);
+    assert(selection.indices[2] == 3);
+
+    assert(forge_i64_select_eq(values, 5, 2, &selection) == 0);
+    assert(selection.length == 2);
+    assert(selection.indices[0] == 1);
+    assert(selection.indices[1] == 3);
+
+    forge_selection_free(&selection);
+}
+
 static void test_reuse_and_reserve(void) {
     const int64_t values[] = {1, 2, 3, 4};
     forge_selection selection;
@@ -44,6 +63,32 @@ static void test_reuse_and_reserve(void) {
     assert(selection.capacity == 0);
 }
 
+static void test_intersection(void) {
+    forge_selection left;
+    forge_selection right;
+    forge_selection output;
+    forge_selection_init(&left);
+    forge_selection_init(&right);
+    forge_selection_init(&output);
+
+    assert(forge_selection_append(&left, 1) == 0);
+    assert(forge_selection_append(&left, 3) == 0);
+    assert(forge_selection_append(&left, 7) == 0);
+    assert(forge_selection_append(&right, 2) == 0);
+    assert(forge_selection_append(&right, 3) == 0);
+    assert(forge_selection_append(&right, 7) == 0);
+    assert(forge_selection_append(&right, 9) == 0);
+
+    assert(forge_selection_intersect(&left, &right, &output) == 0);
+    assert(output.length == 2);
+    assert(output.indices[0] == 3);
+    assert(output.indices[1] == 7);
+
+    forge_selection_free(&left);
+    forge_selection_free(&right);
+    forge_selection_free(&output);
+}
+
 static void test_invalid_arguments(void) {
     const int64_t values[] = {1};
     forge_selection selection;
@@ -53,7 +98,8 @@ static void test_invalid_arguments(void) {
     assert(forge_i64_select_ge(values, 1, 0, NULL) != 0);
     assert(forge_selection_append(NULL, 0) != 0);
     assert(forge_selection_reserve(NULL, 1) != 0);
-    assert(forge_i64_gather(values, 1, NULL, values) == 0);
+    assert(forge_i64_gather(values, 1, NULL, (int64_t *)values) == 0);
+    assert(forge_selection_intersect(NULL, &selection, &selection) != 0);
 
     forge_selection_free(&selection);
 }
@@ -73,7 +119,9 @@ static void test_invalid_selection_index(void) {
 
 int main(void) {
     test_select_and_gather();
+    test_predicates();
     test_reuse_and_reserve();
+    test_intersection();
     test_invalid_arguments();
     test_invalid_selection_index();
     return 0;

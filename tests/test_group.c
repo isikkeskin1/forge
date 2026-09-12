@@ -44,6 +44,26 @@ static void test_growth(void) {
     forge_i64_group_free(&group);
 }
 
+static void test_scan(void) {
+    const int64_t keys[] = {1, 2, 1, 3, 2, 1};
+    const int64_t values[] = {10, 20, 5, 7, -2, 8};
+    forge_i64_group group;
+    forge_i64_group_init(&group);
+
+    assert(forge_i64_group_scan(keys, values, 6, &group) == 0);
+
+    size_t count = 0;
+    int64_t sum = 0;
+    assert(forge_i64_group_get(&group, 1, &count, &sum) == 0);
+    assert(count == 3 && sum == 23);
+    assert(forge_i64_group_get(&group, 2, &count, &sum) == 0);
+    assert(count == 2 && sum == 18);
+    assert(forge_i64_group_get(&group, 3, &count, &sum) == 0);
+    assert(count == 1 && sum == 7);
+
+    forge_i64_group_free(&group);
+}
+
 static void test_invalid_arguments(void) {
     forge_i64_group group;
     forge_i64_group_init(&group);
@@ -53,6 +73,9 @@ static void test_invalid_arguments(void) {
     assert(forge_i64_group_get(NULL, 1, NULL, NULL) != 0);
     assert(forge_i64_group_get(&group, 1, NULL, NULL) != 0);
     assert(forge_i64_group_get(&group, 1, &(size_t){0}, NULL) != 0);
+    assert(forge_i64_group_scan(NULL, NULL, 1, &group) != 0);
+    assert(forge_i64_group_scan(NULL, NULL, 0, &group) == 0);
+    assert(forge_i64_group_scan(NULL, (int64_t[]){1}, 1, &group) != 0);
 
     forge_i64_group_free(&group);
 }
@@ -60,6 +83,7 @@ static void test_invalid_arguments(void) {
 int main(void) {
     test_group_add_and_get();
     test_growth();
+    test_scan();
     test_invalid_arguments();
     return 0;
 }

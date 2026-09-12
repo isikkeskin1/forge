@@ -24,4 +24,8 @@ int forge_i64_group_add(forge_i64_group *group, int64_t key, int64_t value);
 int forge_i64_group_get(const forge_i64_group *group, int64_t key,
                         size_t *count, int64_t *sum);
 
+/* Group one integer column and aggregate a second integer column. */
+int forge_i64_group_scan(const int64_t *keys, const int64_t *values,
+                         size_t length, forge_i64_group *group);
+
 #endif

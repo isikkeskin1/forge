@@ -4,8 +4,6 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "forge_buffer.h"
-
 typedef struct {
     size_t fields;
     size_t records;

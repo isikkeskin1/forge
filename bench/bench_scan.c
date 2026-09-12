@@ -1,4 +1,4 @@
-#include "forge_kernel.h"
+#include "forge_scan.h"
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -42,22 +42,21 @@ int main(int argc, char **argv) {
     }
 
     const int64_t threshold = 500;
-    int64_t sum = 0;
+    forge_i64_scan_result result = {0, 0};
     const clock_t start = clock();
-    const size_t count = forge_i64_count_ge(data, length, threshold);
-    const int status = forge_i64_sum_ge(data, length, threshold, &sum);
+    const int status = forge_i64_scan_ge(data, length, threshold, &result);
     const clock_t end = clock();
 
     if (status != 0) {
-        fprintf(stderr, "scan sum overflowed\n");
+        fprintf(stderr, "fused scan failed\n");
         free(data);
         return 1;
     }
 
     printf("elements: %zu\n", length);
     printf("threshold: %" PRId64 "\n", threshold);
-    printf("matches: %zu\n", count);
-    printf("sum: %" PRId64 "\n", sum);
+    printf("matches: %zu\n", result.count);
+    printf("sum: %" PRId64 "\n", result.sum);
     printf("cpu_time_seconds: %.6f\n", elapsed_seconds(start, end));
 
     free(data);

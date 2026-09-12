@@ -42,3 +42,21 @@ jobs:
 
       - name: Test under sanitizers
         run: ctest --test-dir build --output-on-failure
+
+  benchmark-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Configure benchmarks
+        run: >-
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DFORGE_BUILD_BENCHMARKS=ON
+
+      - name: Build benchmarks
+        run: cmake --build build --parallel
+
+      - name: Smoke test pipeline benchmark
+        run: ./build/forge_bench_pipeline 100000

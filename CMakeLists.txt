@@ -11,6 +11,7 @@ add_library(forge STATIC
     src/forge.c
     src/forge_buffer.c
     src/forge_csv.c
+    src/forge_column.c
 )
 
 target_include_directories(forge
@@ -38,4 +39,8 @@ if(FORGE_BUILD_TESTS)
     add_executable(forge_csv_test tests/test_csv.c)
     target_link_libraries(forge_csv_test PRIVATE forge)
     add_test(NAME forge_csv_test COMMAND forge_csv_test)
+
+    add_executable(forge_column_test tests/test_column.c)
+    target_link_libraries(forge_column_test PRIVATE forge)
+    add_test(NAME forge_column_test COMMAND forge_column_test)
 endif()

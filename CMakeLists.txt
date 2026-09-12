@@ -20,6 +20,7 @@ add_library(forge STATIC
     src/forge_table.c
     src/forge_group.c
     src/forge_sort.c
+    src/forge_join.c
 )
 
 target_include_directories(forge
@@ -79,6 +80,10 @@ if(FORGE_BUILD_TESTS)
     add_executable(forge_sort_test tests/test_sort.c)
     target_link_libraries(forge_sort_test PRIVATE forge)
     add_test(NAME forge_sort_test COMMAND forge_sort_test)
+
+    add_executable(forge_join_test tests/test_join.c)
+    target_link_libraries(forge_join_test PRIVATE forge)
+    add_test(NAME forge_join_test COMMAND forge_join_test)
 endif()
 
 if(FORGE_BUILD_BENCHMARKS)

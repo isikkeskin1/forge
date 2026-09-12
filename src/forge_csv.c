@@ -11,9 +11,9 @@ int forge_csv_scan(FILE *stream, forge_csv_stats *stats) {
     stats->records = 0;
 
     int quoted = 0;
-    int saw_data = 0;
-    int field_has_data = 0;
     int pending_quote = 0;
+    int record_started = 0;
+    int field_has_data = 0;
 
     for (;;) {
         const int ch = fgetc(stream);
@@ -21,14 +21,14 @@ int forge_csv_scan(FILE *stream, forge_csv_stats *stats) {
             if (ferror(stream)) {
                 return -1;
             }
-            if (saw_data || field_has_data) {
+            if (record_started) {
                 ++stats->fields;
                 ++stats->records;
             }
             return 0;
         }
 
-        saw_data = 1;
+        record_started = 1;
 
         if (quoted) {
             if (pending_quote) {
@@ -57,6 +57,7 @@ int forge_csv_scan(FILE *stream, forge_csv_stats *stats) {
         } else if (ch == '\n') {
             ++stats->fields;
             ++stats->records;
+            record_started = 0;
             field_has_data = 0;
         } else if (ch != '\r') {
             field_has_data = 1;

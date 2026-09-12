@@ -3,12 +3,14 @@
 #include <assert.h>
 #include <stdint.h>
 
-int main(void) {
+static void test_scan_and_filter(void) {
     const int64_t values[] = {-10, 0, 4, 4, 9, 20};
     int64_t output[6] = {0};
+    int64_t sum = 0;
 
     assert(forge_i64_count_ge(values, 6, 4) == 4);
-    assert(forge_i64_sum_ge(values, 6, 4) == 37);
+    assert(forge_i64_sum_ge(values, 6, 4, &sum) == 0);
+    assert(sum == 37);
 
     const size_t count = forge_i64_filter_ge(values, 6, 4, output);
     assert(count == 4);
@@ -16,12 +18,32 @@ int main(void) {
     assert(output[1] == 4);
     assert(output[2] == 9);
     assert(output[3] == 20);
+}
 
+static void test_sum_overflow(void) {
+    const int64_t values[] = {INT64_MAX, 1};
+    int64_t sum = 0;
+    assert(forge_i64_sum_ge(values, 2, INT64_MIN, &sum) != 0);
+
+    const int64_t negative[] = {INT64_MIN, -1};
+    assert(forge_i64_sum_ge(negative, 2, INT64_MIN, &sum) != 0);
+}
+
+static void test_invalid_arguments(void) {
+    int64_t sum = 0;
     assert(forge_i64_count_ge(NULL, 0, 0) == 0);
-    assert(forge_i64_sum_ge(NULL, 0, 0) == 0);
+    assert(forge_i64_sum_ge(NULL, 0, 0, &sum) == 0);
+    assert(sum == 0);
+    assert(forge_i64_sum_ge(NULL, 1, 0, &sum) != 0);
+    assert(forge_i64_sum_ge(NULL, 0, 0, NULL) != 0);
     assert(forge_i64_filter_ge(NULL, 0, 0, NULL) == 0);
     assert(forge_i64_count_ge(NULL, 1, 0) == 0);
-    assert(forge_i64_filter_ge(values, 1, 0, NULL) == 0);
+    assert(forge_i64_filter_ge((const int64_t[]){1}, 1, 0, NULL) == 0);
+}
 
+int main(void) {
+    test_scan_and_filter();
+    test_sum_overflow();
+    test_invalid_arguments();
     return 0;
 }

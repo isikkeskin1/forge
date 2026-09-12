@@ -12,6 +12,7 @@ add_library(forge STATIC
     src/forge_buffer.c
     src/forge_csv.c
     src/forge_column.c
+    src/forge_i64_parse.c
 )
 
 target_include_directories(forge
@@ -43,4 +44,8 @@ if(FORGE_BUILD_TESTS)
     add_executable(forge_column_test tests/test_column.c)
     target_link_libraries(forge_column_test PRIVATE forge)
     add_test(NAME forge_column_test COMMAND forge_column_test)
+
+    add_executable(forge_i64_parse_test tests/test_i64_parse.c)
+    target_link_libraries(forge_i64_parse_test PRIVATE forge)
+    add_test(NAME forge_i64_parse_test COMMAND forge_i64_parse_test)
 endif()

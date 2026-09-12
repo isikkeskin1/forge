@@ -1,5 +1,7 @@
 #include "forge_table.h"
 
+#include "forge_sort.h"
+
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -81,4 +83,12 @@ int forge_table_validate(const forge_table *table) {
         }
     }
     return 0;
+}
+
+int forge_table_argsort_i64(const forge_table *table, size_t column, size_t *indices) {
+    if (table == NULL || table->columns == NULL || column >= table->column_count) {
+        return -1;
+    }
+    return forge_i64_argsort(table->columns[column].data,
+                             table->row_count, indices);
 }

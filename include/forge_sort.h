@@ -7,7 +7,7 @@
 /* Sort an int64 column in ascending order in place. */
 int forge_i64_sort(int64_t *data, size_t length);
 
-/* Return a permutation that orders the input without modifying it. */
+/* Return a deterministic permutation that orders the input without modifying it. */
 int forge_i64_argsort(const int64_t *data, size_t length, size_t *indices);
 
 #endif

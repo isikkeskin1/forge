@@ -35,16 +35,8 @@ int forge_selection_reserve(forge_selection *selection, size_t capacity) {
         return -1;
     }
 
-    size_t bytes = capacity * sizeof(*selection->indices);
-    size_t old_bytes = selection->capacity * sizeof(*selection->indices);
-    size_t unused = 0;
-    if (bytes < old_bytes) {
-        return -1;
-    }
-    unused = bytes - old_bytes;
-    (void)unused;
-
-    size_t *indices = realloc(selection->indices, bytes);
+    size_t *indices = realloc(selection->indices,
+                              capacity * sizeof(*selection->indices));
     if (indices == NULL) {
         return -1;
     }

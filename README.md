@@ -2,7 +2,7 @@
 
 > A high-performance, embeddable analytical engine written in C.
 
-This repository is the home of **Forge**, a focused systems/data-engineering project exploring how far a small, dependency-light C engine can push analytical workloads through columnar data, cache-aware execution, memory mapping, SIMD, and parallelism.
+This repository is the home of **Forge**, a focused systems/data-engineering project exploring how far a small, dependency-light C engine can push analytical workloads through columnar data, cache-aware execution, SIMD, parallelism, and memory-mapped I/O.
 
 ## Why Forge?
 
@@ -24,7 +24,9 @@ Forge is **not** intended to replace DuckDB or Polars. It is a laboratory for un
 
 ## Current status
 
-Early-stage foundation. The first milestone is a tiny, testable C core before adding query execution or optimizations.
+Forge now has the first vertical slice of an analytical runtime: typed integer columns, strict numeric parsing, CSV ingestion, reusable selection vectors, scalar predicate kernels, fused scans, a columnar table container, and an open-addressed group-by hash table.
+
+The project is still intentionally pre-optimization: correctness contracts and reproducible measurements come before SIMD or multithreading.
 
 ## Build
 
@@ -32,6 +34,13 @@ Early-stage foundation. The first milestone is a tiny, testable C core before ad
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ctest --test-dir build --output-on-failure
+```
+
+To include microbenchmarks:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFORGE_BUILD_BENCHMARKS=ON
+cmake --build build
 ```
 
 ## Roadmap
@@ -42,18 +51,23 @@ ctest --test-dir build --output-on-failure
 - [x] Public library API
 - [x] Smoke tests
 - [ ] Arena allocator
-- [ ] Typed column vectors
-- [ ] CSV parser
-- [ ] Benchmark harness
+- [x] Typed column vectors
+- [x] CSV scanner
+- [x] Strict integer parser
+- [x] CSV → integer column ingestion
+- [x] Selection vectors
+- [x] Typed table container
+- [x] Benchmark scaffolding
 
 ### Phase 2 — Execution
 
-- [ ] Filter
-- [ ] Projection
-- [ ] Aggregate
-- [ ] Group-by hash table
+- [x] Filter
+- [x] Projection/materialization primitives
+- [x] Fused scan + aggregation
+- [x] Group-by hash table
 - [ ] Sort
 - [ ] Join
+- [ ] Expression kernels
 
 ### Phase 3 — Performance
 
@@ -62,11 +76,12 @@ ctest --test-dir build --output-on-failure
 - [ ] SIMD kernels
 - [ ] Allocation profiling
 - [ ] Cache and memory-bandwidth benchmarks
+- [ ] Benchmark corpus and baseline comparisons
 
 ### Phase 4 — Interfaces
 
 - [ ] SQL subset
-- [ ] CLI
+- [ ] CLI query runner
 - [ ] Python bindings
 - [ ] Parquet reader
 

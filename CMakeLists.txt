@@ -15,6 +15,7 @@ add_library(forge STATIC
     src/forge_column.c
     src/forge_i64_parse.c
     src/forge_kernel.c
+    src/forge_scan.c
 )
 
 target_include_directories(forge
@@ -54,6 +55,10 @@ if(FORGE_BUILD_TESTS)
     add_executable(forge_kernel_test tests/test_kernel.c)
     target_link_libraries(forge_kernel_test PRIVATE forge)
     add_test(NAME forge_kernel_test COMMAND forge_kernel_test)
+
+    add_executable(forge_scan_test tests/test_scan.c)
+    target_link_libraries(forge_scan_test PRIVATE forge)
+    add_test(NAME forge_scan_test COMMAND forge_scan_test)
 endif()
 
 if(FORGE_BUILD_BENCHMARKS)

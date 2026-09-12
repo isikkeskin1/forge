@@ -10,6 +10,7 @@ option(FORGE_BUILD_TESTS "Build Forge tests" ON)
 add_library(forge STATIC
     src/forge.c
     src/forge_buffer.c
+    src/forge_csv.c
 )
 
 target_include_directories(forge
@@ -29,7 +30,12 @@ target_link_libraries(forge_cli PRIVATE forge)
 
 if(FORGE_BUILD_TESTS)
     enable_testing()
+
     add_executable(forge_smoke_test tests/test_smoke.c)
     target_link_libraries(forge_smoke_test PRIVATE forge)
     add_test(NAME forge_smoke_test COMMAND forge_smoke_test)
+
+    add_executable(forge_csv_test tests/test_csv.c)
+    target_link_libraries(forge_csv_test PRIVATE forge)
+    add_test(NAME forge_csv_test COMMAND forge_csv_test)
 endif()

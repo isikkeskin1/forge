@@ -9,6 +9,7 @@ option(FORGE_BUILD_TESTS "Build Forge tests" ON)
 
 add_library(forge STATIC
     src/forge.c
+    src/forge_buffer.c
 )
 
 target_include_directories(forge

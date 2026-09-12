@@ -35,9 +35,42 @@ static void test_reserve(void) {
     forge_i64_column_free(&column);
 }
 
+static void test_min_max(void) {
+    forge_i64_column column;
+    forge_i64_column_init(&column);
+
+    const int64_t values[] = {42, -9, 17, -100, 64, 3};
+    for (size_t i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
+        assert(forge_i64_column_append(&column, values[i]) == 0);
+    }
+
+    int64_t result = 0;
+    assert(forge_i64_column_min(&column, &result) == 0);
+    assert(result == -100);
+    assert(forge_i64_column_max(&column, &result) == 0);
+    assert(result == 64);
+
+    forge_i64_column_free(&column);
+}
+
+static void test_empty_min_max(void) {
+    forge_i64_column column;
+    forge_i64_column_init(&column);
+    int64_t result = 123;
+
+    assert(forge_i64_column_min(&column, &result) != 0);
+    assert(forge_i64_column_max(&column, &result) != 0);
+    assert(forge_i64_column_min(NULL, &result) != 0);
+    assert(forge_i64_column_max(&column, NULL) != 0);
+
+    forge_i64_column_free(&column);
+}
+
 int main(void) {
     test_append_and_growth();
     test_reserve();
+    test_min_max();
+    test_empty_min_max();
     assert(forge_i64_column_append(NULL, 1) != 0);
     assert(forge_i64_column_reserve(NULL, 1) != 0);
     return 0;

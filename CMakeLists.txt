@@ -48,4 +48,8 @@ if(FORGE_BUILD_TESTS)
     add_executable(forge_i64_parse_test tests/test_i64_parse.c)
     target_link_libraries(forge_i64_parse_test PRIVATE forge)
     add_test(NAME forge_i64_parse_test COMMAND forge_i64_parse_test)
+
+    add_executable(forge_csv_i64_test tests/test_csv_i64.c)
+    target_link_libraries(forge_csv_i64_test PRIVATE forge)
+    add_test(NAME forge_csv_i64_test COMMAND forge_csv_i64_test)
 endif()

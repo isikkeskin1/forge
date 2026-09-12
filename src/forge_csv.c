@@ -2,9 +2,9 @@
 
 #include <stddef.h>
 
-int forge_csv_scan(FILE *stream, forge_csv_stats *stats) {
+forge_csv_status forge_csv_scan(FILE *stream, forge_csv_stats *stats) {
     if (stream == NULL || stats == NULL) {
-        return -1;
+        return FORGE_CSV_INVALID_ARGUMENT;
     }
 
     stats->fields = 0;
@@ -19,13 +19,16 @@ int forge_csv_scan(FILE *stream, forge_csv_stats *stats) {
         const int ch = fgetc(stream);
         if (ch == EOF) {
             if (ferror(stream)) {
-                return -1;
+                return FORGE_CSV_IO_ERROR;
+            }
+            if (quoted) {
+                return FORGE_CSV_UNTERMINATED_QUOTE;
             }
             if (record_started) {
                 ++stats->fields;
                 ++stats->records;
             }
-            return 0;
+            return FORGE_CSV_OK;
         }
 
         record_started = 1;

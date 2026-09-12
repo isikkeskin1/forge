@@ -18,4 +18,7 @@ int forge_table_init_i64(forge_table *table, size_t column_count);
 int forge_table_append_i64(forge_table *table, size_t column, int64_t value);
 int forge_table_validate(const forge_table *table);
 
+/* Return row indices ordered by one integer column. */
+int forge_table_argsort_i64(const forge_table *table, size_t column, size_t *indices);
+
 #endif

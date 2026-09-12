@@ -92,16 +92,18 @@ forge_csv_status forge_csv_read_i64_column(FILE *stream, forge_i64_column *colum
                 free(line);
                 return FORGE_CSV_OK;
             }
-        } else if (ch != '\n' && ch != '\r') {
+        } else if (ch == '\r') {
+            continue;
+        } else if (ch != '\n') {
             if (length == SIZE_MAX) {
                 free(line);
                 return FORGE_CSV_INVALID_FIELD;
             }
-            if (length + 1 > capacity) {
+            if (length + 2 > capacity) {
                 size_t next = capacity == 0 ? 64 : capacity;
-                while (next < length + 1) {
+                while (next < length + 2) {
                     if (next > SIZE_MAX / 2) {
-                        next = length + 1;
+                        next = length + 2;
                         break;
                     }
                     next *= 2;

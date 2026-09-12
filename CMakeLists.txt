@@ -79,4 +79,7 @@ endif()
 if(FORGE_BUILD_BENCHMARKS)
     add_executable(forge_bench_scan bench/bench_scan.c)
     target_link_libraries(forge_bench_scan PRIVATE forge)
+
+    add_executable(forge_bench_group bench/bench_group.c)
+    target_link_libraries(forge_bench_group PRIVATE forge)
 endif()

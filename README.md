@@ -8,9 +8,9 @@ Forge is deliberately narrow: implement important pieces from first principles, 
 
 ## Current status
 
-Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. The pipeline keeps a row selection as its intermediate representation, allowing multiple filters to be chained before projection/materialization.
+Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, checked integer expressions, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. Phase 3 has started with a read-only mapped-file abstraction for zero-copy access to local datasets on POSIX systems.
 
-The project remains intentionally pre-optimization: correctness contracts and reproducible measurements come before SIMD or multithreading.
+The project remains intentionally correctness-first: storage and execution contracts are being established before SIMD and multithreaded specialization.
 
 ## Build
 
@@ -58,11 +58,11 @@ The pipeline benchmark accepts an optional row count:
 - [x] Sort / argsort
 - [x] Hash inner join
 - [x] Query pipeline composition
-- [ ] Expression kernels
+- [x] Expression kernels
 
 ### Phase 3 — Performance
 
-- [ ] mmap reader
+- [x] mmap reader
 - [ ] pthread worker pool
 - [ ] SIMD kernels
 - [ ] Allocation profiling
@@ -75,6 +75,10 @@ The pipeline benchmark accepts an optional row count:
 - [ ] CLI query runner
 - [ ] Python bindings
 - [ ] Parquet reader
+
+## Mapped I/O contract
+
+`forge_mapped_file` owns a read-only mapping and its backing file descriptor. Initialize it with `forge_mapped_file_init`, open or replace a mapping with `forge_mapped_file_open`, and release it with `forge_mapped_file_close`. Empty files are valid mappings with a zero length and null data pointer. The current implementation uses POSIX `mmap`; Windows reports the operation as unsupported until a native mapping backend is added.
 
 ## Benchmark philosophy
 

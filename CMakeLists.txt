@@ -23,6 +23,7 @@ add_library(forge STATIC
     src/forge_join.c
     src/forge_pipeline.c
     src/forge_expr.c
+    src/forge_mmap.c
 )
 
 target_include_directories(forge PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -36,7 +37,7 @@ target_link_libraries(forge_cli PRIVATE forge)
 
 if(FORGE_BUILD_TESTS)
     enable_testing()
-    foreach(test_name IN ITEMS smoke csv column i64_parse kernel scan selection table group sort join pipeline expr)
+    foreach(test_name IN ITEMS smoke csv column i64_parse kernel scan selection table group sort join pipeline expr mmap)
         add_executable(forge_${test_name}_test tests/test_${test_name}.c)
         target_link_libraries(forge_${test_name}_test PRIVATE forge)
         add_test(NAME forge_${test_name}_test COMMAND forge_${test_name}_test)

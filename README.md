@@ -8,9 +8,9 @@ Forge is deliberately narrow: implement important pieces from first principles, 
 
 ## Current status
 
-Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, checked integer expressions, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. Phase 3 now includes read-only mapped files and a fixed-size pthread worker pool that provides the scheduling primitive for parallel analytical operators.
+Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, checked integer expressions, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. Phase 3 includes read-only mapped files, a fixed-size pthread worker pool, and partitioned parallel scan execution.
 
-The project remains intentionally correctness-first: storage and execution contracts are being established before SIMD and operator-specific multithreaded specialization.
+The project remains intentionally correctness-first: storage and execution contracts are being established before SIMD and deeper operator-specific multithreaded specialization.
 
 ## Build
 
@@ -64,7 +64,7 @@ The pipeline benchmark accepts an optional row count:
 
 - [x] mmap reader
 - [x] pthread worker pool
-- [ ] Parallel scan execution
+- [x] Parallel scan execution
 - [ ] SIMD kernels
 - [ ] Allocation profiling
 - [ ] Cache and memory-bandwidth benchmarks
@@ -81,9 +81,11 @@ The pipeline benchmark accepts an optional row count:
 
 `forge_mapped_file` owns a read-only mapping and its backing file descriptor. Initialize it with `forge_mapped_file_init`, open or replace a mapping with `forge_mapped_file_open`, and release it with `forge_mapped_file_close`. Empty files are valid mappings with a zero length and null data pointer. The current implementation uses POSIX `mmap`; Windows reports the operation as unsupported until a native mapping backend is added.
 
-## Worker runtime
+## Worker runtime and parallel scans
 
-`forge_worker_pool` is a fixed-size pthread runtime with a bounded FIFO task queue. Producers block when the queue is full, workers sleep while it is empty, and `forge_worker_pool_wait` provides a completion barrier for all previously submitted work. Pool destruction drains queued tasks before stopping and joining the worker threads. This runtime is intentionally operator-agnostic so scan, aggregation, and later execution stages can share the same scheduling primitive.
+`forge_worker_pool` is a fixed-size pthread runtime with a bounded FIFO task queue. Producers block when the queue is full, workers sleep while it is empty, and `forge_worker_pool_wait` provides a completion barrier for submitted work. Pool destruction drains queued tasks before stopping and joining the worker threads.
+
+`forge_i64_scan_ge_parallel` partitions a fused predicate/count/sum scan into configurable grain-sized chunks, schedules those chunks on an existing worker pool, and merges partial aggregates with the same overflow checks as the scalar scan. Callers retain control of the pool lifetime so repeated analytical operators can amortize thread creation.
 
 ## Benchmark philosophy
 

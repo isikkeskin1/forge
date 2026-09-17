@@ -7,6 +7,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 option(FORGE_BUILD_TESTS "Build Forge tests" ON)
 option(FORGE_BUILD_BENCHMARKS "Build Forge microbenchmarks" OFF)
+option(FORGE_ENABLE_AVX2 "Compile AVX2 kernels when supported by the compiler" OFF)
 
 find_package(Threads REQUIRED)
 
@@ -17,6 +18,7 @@ add_library(forge STATIC
     src/forge_column.c
     src/forge_i64_parse.c
     src/forge_kernel.c
+    src/forge_simd.c
     src/forge_scan.c
     src/forge_selection.c
     src/forge_table.c
@@ -31,6 +33,14 @@ add_library(forge STATIC
 
 target_include_directories(forge PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(forge PUBLIC Threads::Threads)
+
+if(FORGE_ENABLE_AVX2)
+    if(MSVC)
+        target_compile_options(forge PRIVATE /arch:AVX2)
+    else()
+        target_compile_options(forge PRIVATE -mavx2)
+    endif()
+endif()
 
 target_compile_options(forge PRIVATE
     $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Wshadow>

@@ -8,9 +8,9 @@ Forge is deliberately narrow: implement important pieces from first principles, 
 
 ## Current status
 
-Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, checked integer expressions, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. Phase 3 includes read-only mapped files, a fixed-size pthread worker pool, and partitioned parallel scan execution.
+Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, checked integer expressions, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. Phase 3 includes read-only mapped files, a fixed-size pthread worker pool, partitioned parallel scan execution, and the first AVX2 predicate kernel with a portable scalar fallback.
 
-The project remains intentionally correctness-first: storage and execution contracts are being established before SIMD and deeper operator-specific multithreaded specialization.
+The project remains intentionally correctness-first: optimized paths are introduced behind the same contracts as their scalar counterparts and are checked for result parity before broader vectorization.
 
 ## Build
 
@@ -19,6 +19,16 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ctest --test-dir build --output-on-failure
 ```
+
+To compile the AVX2 path on a compatible x86-64 machine:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFORGE_ENABLE_AVX2=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+Without that option, the SIMD entry point remains portable and delegates to the scalar implementation.
 
 To include microbenchmarks:
 
@@ -65,7 +75,8 @@ The pipeline benchmark accepts an optional row count:
 - [x] mmap reader
 - [x] pthread worker pool
 - [x] Parallel scan execution
-- [ ] SIMD kernels
+- [x] First SIMD predicate kernel
+- [ ] SIMD scan/filter specialization
 - [ ] Allocation profiling
 - [ ] Cache and memory-bandwidth benchmarks
 - [ ] Benchmark corpus and baseline comparisons
@@ -86,6 +97,10 @@ The pipeline benchmark accepts an optional row count:
 `forge_worker_pool` is a fixed-size pthread runtime with a bounded FIFO task queue. Producers block when the queue is full, workers sleep while it is empty, and `forge_worker_pool_wait` provides a completion barrier for submitted work. Pool destruction drains queued tasks before stopping and joining the worker threads.
 
 `forge_i64_scan_ge_parallel` partitions a fused predicate/count/sum scan into configurable grain-sized chunks, schedules those chunks on an existing worker pool, and merges partial aggregates with the same overflow checks as the scalar scan. Callers retain control of the pool lifetime so repeated analytical operators can amortize thread creation.
+
+## SIMD contract
+
+`forge_i64_count_ge_simd` is the first explicitly vectorized predicate kernel. AVX2 builds compare four signed 64-bit values per iteration and reduce lane-local match counts, with a scalar tail for arbitrary lengths. Portable builds expose the same API and fall back to `forge_i64_count_ge`, allowing callers and tests to use one contract regardless of target architecture.
 
 ## Benchmark philosophy
 

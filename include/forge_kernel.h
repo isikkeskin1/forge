@@ -19,4 +19,8 @@ int forge_i64_sum_ge(const int64_t *data, size_t length, int64_t threshold,
 size_t forge_i64_filter_ge(const int64_t *data, size_t length,
                            int64_t threshold, int64_t *output);
 
+/* Vectorize predicate evaluation while preserving stable output order. */
+size_t forge_i64_filter_ge_simd(const int64_t *data, size_t length,
+                                int64_t threshold, int64_t *output);
+
 #endif

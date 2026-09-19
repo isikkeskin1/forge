@@ -8,7 +8,7 @@ Forge is deliberately narrow: implement important pieces from first principles, 
 
 ## Current status
 
-Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, checked integer expressions, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. Phase 3 includes read-only mapped files, a fixed-size pthread worker pool, partitioned parallel scan execution, and AVX2 predicate/filter kernels with portable scalar fallbacks.
+Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, checked integer expressions, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. Phase 3 includes read-only mapped files, a fixed-size pthread worker pool, partitioned parallel scan execution, AVX2 predicate/filter kernels with portable scalar fallbacks, and an allocation-accounting layer for measuring memory behavior.
 
 The project remains intentionally correctness-first: optimized paths are introduced behind the same contracts as their scalar counterparts and are checked for result parity before broader vectorization.
 
@@ -77,7 +77,7 @@ The pipeline benchmark accepts an optional row count:
 - [x] Parallel scan execution
 - [x] First SIMD predicate kernel
 - [x] SIMD scan/filter specialization
-- [ ] Allocation profiling
+- [x] Allocation profiling
 - [ ] Cache and memory-bandwidth benchmarks
 - [ ] Benchmark corpus and baseline comparisons
 
@@ -101,6 +101,10 @@ The pipeline benchmark accepts an optional row count:
 ## SIMD contract
 
 `forge_i64_count_ge_simd` and `forge_i64_filter_ge_simd` vectorize the `>=` predicate on AVX2 builds. The filter keeps row order stable: fully matching vectors are stored directly, partially matching vectors are compacted lane-by-lane because AVX2 has no 64-bit compress-store, and arbitrary tails use the scalar path. Portable builds expose the same APIs and fall back to the scalar kernels so callers can keep one execution contract across targets.
+
+## Allocation profiling
+
+`forge_alloc` provides instrumented malloc/calloc/realloc/free wrappers and exposes counters for allocation/free calls, live allocations, current and peak live bytes, and cumulative requested bytes. The accounting layer is intentionally small and opt-in: operators can migrate to it incrementally, making allocation regressions measurable without coupling the analytical APIs to a particular allocator.
 
 ## Benchmark philosophy
 

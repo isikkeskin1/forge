@@ -8,7 +8,7 @@ Forge is deliberately narrow: implement important pieces from first principles, 
 
 ## Current status
 
-Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, checked integer expressions, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. Phase 3 includes read-only mapped files, a fixed-size pthread worker pool, partitioned parallel scan execution, AVX2 predicate/filter kernels with portable scalar fallbacks, and an allocation-accounting layer for measuring memory behavior.
+Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, checked integer expressions, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. Phase 3 includes read-only mapped files, a fixed-size pthread worker pool, partitioned parallel scan execution, AVX2 predicate/filter kernels with portable scalar fallbacks, allocation accounting, and cache/memory-bandwidth measurement workloads.
 
 The project remains intentionally correctness-first: optimized paths are introduced behind the same contracts as their scalar counterparts and are checked for result parity before broader vectorization.
 
@@ -41,6 +41,13 @@ The pipeline benchmark accepts an optional row count:
 
 ```bash
 ./build/forge_bench_pipeline 5000000
+```
+
+Memory experiments accept dataset size in bytes; the sequential sweep also accepts pass count and the stride experiment accepts round count:
+
+```bash
+./build/forge_bench_memory 268435456 5
+./build/forge_bench_stride 67108864 8
 ```
 
 ## Roadmap
@@ -78,7 +85,7 @@ The pipeline benchmark accepts an optional row count:
 - [x] First SIMD predicate kernel
 - [x] SIMD scan/filter specialization
 - [x] Allocation profiling
-- [ ] Cache and memory-bandwidth benchmarks
+- [x] Cache and memory-bandwidth benchmarks
 - [ ] Benchmark corpus and baseline comparisons
 
 ### Phase 4 — Interfaces
@@ -105,6 +112,10 @@ The pipeline benchmark accepts an optional row count:
 ## Allocation profiling
 
 `forge_alloc` provides instrumented malloc/calloc/realloc/free wrappers and exposes counters for allocation/free calls, live allocations, current and peak live bytes, and cumulative requested bytes. The accounting layer is intentionally small and opt-in: operators can migrate to it incrementally, making allocation regressions measurable without coupling the analytical APIs to a particular allocator.
+
+## Memory experiments
+
+`forge_bench_memory` measures sustained sequential read bandwidth over a caller-sized working set and reports GiB/s with a checksum that keeps the traversal observable. `forge_bench_stride` sweeps element strides from contiguous access through multi-kilobyte jumps and reports nanoseconds per access, making cache-line and locality effects visible without pretending to infer hardware cache sizes automatically. Run these in Release builds on otherwise idle hardware and record CPU/compiler details alongside results.
 
 ## Benchmark philosophy
 

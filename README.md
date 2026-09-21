@@ -8,7 +8,7 @@ Forge is deliberately narrow: implement important pieces from first principles, 
 
 ## Current status
 
-Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, checked integer expressions, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. Phase 3 includes read-only mapped files, a fixed-size pthread worker pool, partitioned parallel scan execution, AVX2 predicate/filter kernels with portable scalar fallbacks, allocation accounting, and cache/memory-bandwidth measurement workloads.
+Forge has a small analytical runtime with typed integer columns, strict numeric parsing, CSV ingestion, reusable selections, predicate and aggregation kernels, checked integer expressions, a typed table container, sorting/permutation primitives, hash joins, and a composable integer query pipeline. Phase 3 includes read-only mapped files, a fixed-size pthread worker pool, partitioned parallel scan execution, AVX2 predicate/filter kernels with portable scalar fallbacks, allocation accounting, cache/memory-bandwidth measurement workloads, and a stable CSV-emitting baseline corpus for regression measurements.
 
 The project remains intentionally correctness-first: optimized paths are introduced behind the same contracts as their scalar counterparts and are checked for result parity before broader vectorization.
 
@@ -41,6 +41,13 @@ The pipeline benchmark accepts an optional row count:
 
 ```bash
 ./build/forge_bench_pipeline 5000000
+```
+
+The stable baseline corpus emits CSV and accepts optional row/round counts:
+
+```bash
+./build/forge_bench_baseline
+./build/forge_bench_baseline 10000000 10
 ```
 
 Memory experiments accept dataset size in bytes; the sequential sweep also accepts pass count and the stride experiment accepts round count:
@@ -86,7 +93,8 @@ Memory experiments accept dataset size in bytes; the sequential sweep also accep
 - [x] SIMD scan/filter specialization
 - [x] Allocation profiling
 - [x] Cache and memory-bandwidth benchmarks
-- [ ] Benchmark corpus and baseline comparisons
+- [x] Stable benchmark corpus and internal baselines
+- [ ] External-engine baseline comparisons
 
 ### Phase 4 — Interfaces
 
@@ -119,7 +127,7 @@ Memory experiments accept dataset size in bytes; the sequential sweep also accep
 
 ## Benchmark philosophy
 
-Every optimization must be measured. Forge will publish workload definitions, hardware information, compiler flags, raw results, and correctness checks alongside headline numbers.
+Every optimization must be measured. Forge publishes workload definitions and expects hardware information, compiler flags, raw results, and correctness checks to accompany performance claims. `docs/benchmarks.md` defines the baseline recording and comparison protocol.
 
 The goal is not to manufacture a benchmark victory. The goal is to understand **why** an implementation is faster or slower.
 

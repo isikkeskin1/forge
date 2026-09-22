@@ -33,4 +33,16 @@ Do not compare Debug builds with Release builds. Avoid running benchmarks while 
 
 Use the same input shape and build configuration for before/after measurements. Report the individual runs as well as a median; do not discard slow runs without documenting why. Correctness checks take priority over a faster result.
 
-External-engine comparisons will be added only when Forge has equivalent semantics for the workload. Until then, this corpus is primarily for detecting regressions and quantifying internal optimization work.
+## External-engine baseline contract
+
+External comparisons start with the same fused integer scan as `forge_bench_baseline`: generate the deterministic integer sequence, retain values greater than or equal to the threshold, and report both the matching row count and sum. Adapters must validate those result fields before their timing is considered comparable.
+
+`bench/external/baseline.py` is a dependency-free reference implementation of that contract. It is deliberately not presented as a competitive Python benchmark; its purpose is to make the input generator and result semantics executable outside Forge and provide a template for DuckDB, Polars, or other adapters.
+
+```bash
+python3 bench/external/baseline.py --rows 1000000 --rounds 3 --threshold 0
+```
+
+An engine adapter belongs in `bench/external/` and should emit the same CSV columns: engine, rows, rounds, threshold, seconds, rows_per_second, count, and sum. Time only the analytical operation after deterministic input construction when the engine API permits it. Do not include CSV parsing, package import, or process startup in one engine's measurement unless the same work is included for every engine.
+
+A published comparison must include engine/version, Forge commit, compiler/build flags, hardware/OS, raw runs, and median throughput. Forge should not claim a performance win from the reference Python implementation; meaningful external claims require an adapter for the named engine and equivalent semantics.

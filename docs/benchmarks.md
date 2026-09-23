@@ -37,12 +37,23 @@ Use the same input shape and build configuration for before/after measurements. 
 
 External comparisons start with the same fused integer scan as `forge_bench_baseline`: generate the deterministic integer sequence, retain values greater than or equal to the threshold, and report both the matching row count and sum. Adapters must validate those result fields before their timing is considered comparable.
 
-`bench/external/baseline.py` is a dependency-free reference implementation of that contract. It is deliberately not presented as a competitive Python benchmark; its purpose is to make the input generator and result semantics executable outside Forge and provide a template for DuckDB, Polars, or other adapters.
+`bench/external/baseline.py` is a dependency-free reference implementation of that contract. It is deliberately not presented as a competitive Python benchmark; its purpose is to make the input generator and result semantics executable outside Forge.
 
 ```bash
 python3 bench/external/baseline.py --rows 1000000 --rounds 3 --threshold 0
 ```
 
-An engine adapter belongs in `bench/external/` and should emit the same CSV columns: engine, rows, rounds, threshold, seconds, rows_per_second, count, and sum. Time only the analytical operation after deterministic input construction when the engine API permits it. Do not include CSV parsing, package import, or process startup in one engine's measurement unless the same work is included for every engine.
+### DuckDB adapter
 
-A published comparison must include engine/version, Forge commit, compiler/build flags, hardware/OS, raw runs, and median throughput. Forge should not claim a performance win from the reference Python implementation; meaningful external claims require an adapter for the named engine and equivalent semantics.
+`bench/external/duckdb_baseline.py` is the first real external-engine adapter. It requires the optional `duckdb` Python package, creates the deterministic integer corpus in an in-memory DuckDB table before timing begins, then times only the `COUNT`/`SUM` query with the equivalent `>=` predicate. It validates that the result remains stable between rounds and includes the DuckDB version in its CSV output.
+
+```bash
+python3 -m pip install duckdb
+python3 bench/external/duckdb_baseline.py --rows 10000000 --rounds 5 --threshold 0
+```
+
+Compare that output with a Release build of `forge_bench_baseline` using the same row count, round count, and threshold semantics. Package installation, process startup, and corpus construction are intentionally excluded from the timed DuckDB query; Forge's baseline similarly times the analytical scan rather than dataset construction.
+
+An engine adapter belongs in `bench/external/` and should report engine/version, rows, rounds, threshold, seconds, rows_per_second, count, and sum. Time only the analytical operation after deterministic input construction when the engine API permits it. Do not include CSV parsing, package import, or process startup in one engine's measurement unless the same work is included for every engine.
+
+A published comparison must include engine/version, Forge commit, compiler/build flags, hardware/OS, raw runs, and median throughput. Forge should not claim a performance win from the reference Python implementation; meaningful external claims require an adapter for the named engine and equivalent semantics. The repository provides the comparison harness, but measured performance claims should only be added after both engines have been run on the same machine under the protocol above.

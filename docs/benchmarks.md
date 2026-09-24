@@ -45,14 +45,25 @@ python3 bench/external/baseline.py --rows 1000000 --rounds 3 --threshold 0
 
 ### DuckDB adapter
 
-`bench/external/duckdb_baseline.py` is the first real external-engine adapter. It requires the optional `duckdb` Python package, creates the deterministic integer corpus in an in-memory DuckDB table before timing begins, then times only the `COUNT`/`SUM` query with the equivalent `>=` predicate. It validates that the result remains stable between rounds and includes the DuckDB version in its CSV output.
+`bench/external/duckdb_baseline.py` requires the optional `duckdb` Python package, creates the deterministic integer corpus in an in-memory DuckDB table before timing begins, then times only the `COUNT`/`SUM` query with the equivalent `>=` predicate. It validates that the result remains stable between rounds and includes the DuckDB version in its CSV output.
 
 ```bash
 python3 -m pip install duckdb
 python3 bench/external/duckdb_baseline.py --rows 10000000 --rounds 5 --threshold 0
 ```
 
-Compare that output with a Release build of `forge_bench_baseline` using the same row count, round count, and threshold semantics. Package installation, process startup, and corpus construction are intentionally excluded from the timed DuckDB query; Forge's baseline similarly times the analytical scan rather than dataset construction.
+### Polars adapter
+
+`bench/external/polars_baseline.py` provides the same contract for Polars. It constructs the deterministic `Int64` column before timing, builds a lazy filter/aggregation expression, performs one untimed warm-up materialization, and then measures complete query execution for each round. The adapter verifies every measured result against the warm-up result and records the installed Polars version.
+
+```bash
+python3 -m pip install polars
+python3 bench/external/polars_baseline.py --rows 10000000 --rounds 5 --threshold 0
+```
+
+The warm-up is intentional: lazy engines can incur one-time plan/runtime initialization that is not part of Forge's already-constructed scan benchmark. Measured rounds still execute the full filter and aggregation. Do not compare a cached/materialized Polars result against a fresh Forge scan.
+
+Compare adapter output with a Release build of `forge_bench_baseline` using the same row count, round count, and threshold semantics. Package installation, process startup, and corpus construction are intentionally excluded from timed external queries; Forge's baseline similarly times the analytical scan rather than dataset construction.
 
 An engine adapter belongs in `bench/external/` and should report engine/version, rows, rounds, threshold, seconds, rows_per_second, count, and sum. Time only the analytical operation after deterministic input construction when the engine API permits it. Do not include CSV parsing, package import, or process startup in one engine's measurement unless the same work is included for every engine.
 

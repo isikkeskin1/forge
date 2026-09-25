@@ -4,16 +4,16 @@ Forge benchmarks are intended to make performance changes reproducible rather th
 
 ## Baseline corpus
 
-`forge_bench_baseline` is the stable starting workload. It currently measures the scalar fused `>=` scan over a deterministic integer column. The default corpus is 10,000,000 rows repeated five times. Output is CSV so results can be appended to experiment logs or compared by scripts without scraping prose.
+`forge_bench_baseline` is the stable starting workload. It measures the scalar fused `>=` scan over the same deterministic integer distribution used by the external adapters. The default corpus is 10,000,000 rows repeated five times with threshold zero. Output follows the common external CSV schema so collected Forge results can be validated directly against engine adapters.
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFORGE_BUILD_BENCHMARKS=ON
 cmake --build build
 ./build/forge_bench_baseline
-./build/forge_bench_baseline 10000000 10
+./build/forge_bench_baseline 10000000 10 0
 ```
 
-The checksum is part of the output to keep the workload observable and to make accidental semantic changes visible alongside performance changes.
+The result count and sum are part of the output to make accidental semantic changes visible alongside performance changes.
 
 ## Recording a baseline
 
@@ -35,7 +35,7 @@ Use the same input shape and build configuration for before/after measurements. 
 
 ## External-engine baseline contract
 
-External comparisons start with the same fused integer scan as `forge_bench_baseline`: generate the deterministic integer sequence, retain values greater than or equal to the threshold, and report both the matching row count and sum. Adapters must validate those result fields before their timing is considered comparable.
+External comparisons use the same fused integer scan as `forge_bench_baseline`: generate `((row * 17) % 1009) - 504`, retain values greater than or equal to the threshold, and report both the matching row count and sum. Adapters must validate those result fields before their timing is considered comparable.
 
 `bench/external/baseline.py` is a dependency-free reference implementation of that contract. It is deliberately not presented as a competitive Python benchmark; its purpose is to make the input generator and result semantics executable outside Forge.
 
@@ -63,7 +63,20 @@ python3 bench/external/polars_baseline.py --rows 10000000 --rounds 5 --threshold
 
 The warm-up is intentional: lazy engines can incur one-time plan/runtime initialization that is not part of Forge's already-constructed scan benchmark. Measured rounds still execute the full filter and aggregation. Do not compare a cached/materialized Polars result against a fresh Forge scan.
 
-Compare adapter output with a Release build of `forge_bench_baseline` using the same row count, round count, and threshold semantics. Package installation, process startup, and corpus construction are intentionally excluded from timed external queries; Forge's baseline similarly times the analytical scan rather than dataset construction.
+### Comparing collected results
+
+Keep benchmark execution separate from comparison. Redirect each independent run to its own CSV file, then pass those files to `compare_results.py`. The comparator rejects mismatched row counts, thresholds, counts, or sums before calculating medians and relative throughput; the first file is the baseline for the relative column.
+
+```bash
+./build/forge_bench_baseline 10000000 5 0 > forge.csv
+python3 bench/external/duckdb_baseline.py --rows 10000000 --rounds 5 --threshold 0 > duckdb.csv
+python3 bench/external/polars_baseline.py --rows 10000000 --rounds 5 --threshold 0 > polars.csv
+python3 bench/external/compare_results.py forge.csv duckdb.csv polars.csv
+```
+
+For publication-quality measurements, collect at least three independent process runs per engine and preserve their raw CSV files. The comparator can consume a file containing multiple rows for one engine, but never combine different engines in one input file.
+
+Package installation, process startup, and corpus construction are intentionally excluded from timed external queries; Forge's baseline similarly times the analytical scan rather than dataset construction.
 
 An engine adapter belongs in `bench/external/` and should report engine/version, rows, rounds, threshold, seconds, rows_per_second, count, and sum. Time only the analytical operation after deterministic input construction when the engine API permits it. Do not include CSV parsing, package import, or process startup in one engine's measurement unless the same work is included for every engine.
 

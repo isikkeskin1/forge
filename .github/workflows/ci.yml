@@ -60,3 +60,9 @@ jobs:
 
       - name: Smoke test pipeline benchmark
         run: ./build/forge_bench_pipeline 100000
+
+      - name: Test external result comparator
+        run: python3 -m unittest tests/test_compare_results.py
+
+      - name: Smoke test external reference workload
+        run: python3 bench/external/baseline.py --rows 10000 --rounds 1 --threshold 0 > /tmp/reference.csv
